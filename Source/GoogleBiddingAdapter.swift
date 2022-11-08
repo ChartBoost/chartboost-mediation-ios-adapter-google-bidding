@@ -9,13 +9,15 @@ import Foundation
 import GoogleMobileAds
 import HeliumSdk
 
-enum Constants {
-    // Note that this string is the name of a Google class, not our adapter class name
-    static let googleBiddingClassName = "GADMobileAds"
-    // A Google-specified dictionary key, also used as a key for that value when stored locally
+// Magic Strings that shouldn't be changed because they're defined by Google, not Helium.
+enum GoogleStrings {
+    static let ccpaKey = "gap_rdp"
+    static let gadClassName = "GADMobileAds"
+    static let gdprKey = "npa"
     static let isHybridKey = "is_hybrid_setup"
-    // A Google-specified dictionary key
-    static let reqId = "placement_request_id"
+    static let queryType = "requester_type_2"
+    static let queryTypeKey = "query_info_type"
+    static let reqIdKey = "placement_request_id"
 }
 
 final class GoogleBiddingAdapter: PartnerAdapter {
@@ -53,7 +55,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
 
         // Exit early if GoogleMobileAds SDK has already been initalized
         let statuses = GADMobileAds.sharedInstance().initializationStatus
-        guard let status = statuses.adapterStatusesByClassName[Constants.googleBiddingClassName],
+        guard let status = statuses.adapterStatusesByClassName[GoogleStrings.gadClassName],
                   status.state == GADAdapterInitializationState.notReady else {
             log("Redundant call to initalize GoogleMobileAds was ignored")
             // We should log either success or failure before returning, and this is more like success.
@@ -65,16 +67,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         GADMobileAds.sharedInstance().disableMediationInitialization()
         
         // Parameters that need to be on every gBid request
-        sharedExtras.additionalParameters = ["query_info_type": "requester_type_2"]
+        sharedExtras.additionalParameters = [GoogleStrings.queryTypeKey: GoogleStrings.queryType]
         
         GADMobileAds.sharedInstance().start { initStatus in
             let statuses = initStatus.adapterStatusesByClassName
-            if statuses[Constants.googleBiddingClassName]?.state == .ready {
+            if statuses[GoogleStrings.gadClassName]?.state == .ready {
                 self.log(.setUpSucceded)
                 completion(nil)
             } else {
                 let error = self.error(.setUpFailure,
-                                       description: "GoogleBidding adapter status was \(String(describing: statuses[Constants.googleBiddingClassName]?.state))")
+                                       description: "GoogleBidding adapter status was \(String(describing: statuses[GoogleStrings.gadClassName]?.state))")
                 self.log(.setUpFailed(error))
                 completion(error)
             }
@@ -121,12 +123,12 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func setGDPR(applies: Bool?, status: GDPRConsentStatus) {
         if applies == true && status != .granted {
             // Set "npa" to "1" by merging with the existing extras dictionary if it's non-nil and overwriting the old value if keys collide
-            sharedExtras.additionalParameters = (sharedExtras.additionalParameters ?? [:]).merging(["npa":"1"], uniquingKeysWith: { (_, new) in new })
-            log(.privacyUpdated(setting: "npa", value: "1"))
+            sharedExtras.additionalParameters = (sharedExtras.additionalParameters ?? [:]).merging([GoogleStrings.gdprKey:"1"], uniquingKeysWith: { (_, new) in new })
+            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: "1"))
         } else {
             // If GDPR doesn't apply or status is '.granted', then remove the "non-personalized ads" flag
-            sharedExtras.additionalParameters?["npa"] = nil
-            log(.privacyUpdated(setting: "npa", value: "nil"))
+            sharedExtras.additionalParameters?[GoogleStrings.gdprKey] = nil
+            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: "nil"))
         }
     }
     
@@ -136,8 +138,8 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func setCCPA(hasGivenConsent: Bool, privacyString: String) {
         // https://developers.google.com/ad-manager/mobile-ads-sdk/ios/ccpa#rdp_signal_2
         // Invert the boolean, because "has given consent" is the opposite of "needs Restricted Data Processing"
-        log(.privacyUpdated(setting: "gap_rdp", value: !hasGivenConsent))
-        UserDefaults.standard.set(!hasGivenConsent, forKey: "gad_rdp")
+        log(.privacyUpdated(setting: GoogleStrings.ccpaKey, value: !hasGivenConsent))
+        UserDefaults.standard.set(!hasGivenConsent, forKey: GoogleStrings.ccpaKey)
     }
     
     /// Indicates if the user is subject to COPPA or not.
