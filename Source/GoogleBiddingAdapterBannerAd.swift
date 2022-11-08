@@ -81,8 +81,8 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
     }
 
     func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
-        // Report load failure
         let error = self.error(.loadFailure)
+        log(.loadFailed(error))
         loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
