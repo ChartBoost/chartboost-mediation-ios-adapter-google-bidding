@@ -5,8 +5,6 @@
 // Created by Alex Rice on 10/03/22
 //
 
-// TODO: should I even send a bid if COPPA is set? (ctrl-f coppa https://support.google.com/admanager/answer/7128958?hl=en)
-
 import Foundation
 import GoogleMobileAds
 import HeliumSdk
@@ -17,7 +15,7 @@ enum Constants {
     // A Google-specified dictionary key, also used as a key for that value when stored locally
     static let isHybridKey = "is_hybrid_setup"
     // A Google-specified dictionary key
-    static let reqId = "placement_request_id" // TODO: check whether this is used
+    static let reqId = "placement_request_id"
 }
 
 final class GoogleBiddingAdapter: PartnerAdapter {
@@ -89,6 +87,10 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func fetchBidderInformation(request: PreBidRequest, completion: @escaping ([String: String]?) -> Void) {
         log(.fetchBidderInfoStarted(request))
         
+        let gbRequest = GADRequest()
+        gbRequest.requestAgent = "Helium"
+        gbRequest.register(sharedExtras)
+        
         // Convert from our internal AdFormat type to Google's ad format type
         let gbAdFormat = { () -> GADAdFormat in
             switch request.format {
@@ -100,7 +102,6 @@ final class GoogleBiddingAdapter: PartnerAdapter {
                 return GADAdFormat.rewarded
             }
         }()
-        let gbRequest = generateRequest()
         
         GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
             if let token = queryInfo?.query {
@@ -167,16 +168,4 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         }
     }
     
-}
-
-// TODO: remove this kludge
-extension GoogleBiddingAdapter {
-    /// Configure the request object that will be sent to GoogleBidding
-    func generateRequest() -> GADRequest {
-        let gbRequest = GADRequest()
-        gbRequest.requestAgent = "Helium"
-
-        gbRequest.register(sharedExtras)
-        return gbRequest
-    }
 }
