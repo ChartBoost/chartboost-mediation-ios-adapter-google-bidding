@@ -31,6 +31,13 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
             completion(.failure(error))
             return
         }
+        // Check for valid adm
+        guard request.adm != nil, request.adm != "" else {
+            let error = error(.noBidPayload)
+            log(.loadFailed(error))
+            completion(.failure(error))
+            return
+        }
         
         let gbRequest = generateRequest()
         gbRequest.adString = request.adm
@@ -39,12 +46,13 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            let size = self.gadAdSizeFrom(cgSize: self.request.size)
-            self.ad = GADBannerView(adSize: size)
-            self.ad?.adUnitID = placementID
-            self.ad?.isAutoloadEnabled = false
-            self.ad?.delegate = self
-            self.ad?.rootViewController = viewController
+
+            let bannerView = GADBannerView(adSize: self.gadAdSizeFrom(cgSize: self.request.size))
+            bannerView.adUnitID = placementID
+            bannerView.isAutoloadEnabled = false
+            bannerView.delegate = self
+            bannerView.rootViewController = viewController
+            self.ad = bannerView
             self.ad?.load(gbRequest)
         }
     }
@@ -57,7 +65,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
         // no-op
     }
     
-    func gadAdSizeFrom(cgSize: CGSize?) -> GADAdSize {
+    private func gadAdSizeFrom(cgSize: CGSize?) -> GADAdSize {
         guard let size = cgSize else { return GADAdSizeInvalid }
         switch (size.width, size.height) {
         case (320, 50):
@@ -78,6 +86,7 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
         log(.loadSucceeded)
         self.inlineView = bannerView
         loadCompletion?(.success([:])) ?? log(.loadResultIgnored)
+        loadCompletion = nil
     }
 
     func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {

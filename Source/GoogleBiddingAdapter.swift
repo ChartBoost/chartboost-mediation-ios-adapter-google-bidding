@@ -34,7 +34,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     var partnerIdentifier = "google_googlebidding"
     
     /// The human-friendly partner name.
-    var partnerDisplayName = "Google Bidding"
+    var partnerDisplayName = "Google bidding"
     
     /// Parameters that should be included in all ad requests
     let sharedExtras = GADExtras()
@@ -52,6 +52,12 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// - parameter completion: Closure to be performed by the adapter when it's done setting up. It should include an error indicating the cause for failure or `nil` if the operation finished successfully.
     func setUp(with configuration: PartnerConfiguration, completion: @escaping (Error?) -> Void) {
         log(.setUpStarted)
+        
+        // Parameters that need to be on every Google bidding request
+        sharedExtras.additionalParameters = [GoogleStrings.queryTypeKey: GoogleStrings.queryType]
+        
+        // Disable Google mediation since Helium is the mediator
+        GADMobileAds.sharedInstance().disableMediationInitialization()
 
         // Exit early if GoogleMobileAds SDK has already been initalized
         let statuses = GADMobileAds.sharedInstance().initializationStatus
@@ -60,14 +66,9 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             log("Redundant call to initalize GoogleMobileAds was ignored")
             // We should log either success or failure before returning, and this is more like success.
             log(.setUpSucceded)
+            completion(nil)
             return
         }
-        
-        // Disable Google mediation since Helium is the mediator
-        GADMobileAds.sharedInstance().disableMediationInitialization()
-        
-        // Parameters that need to be on every gBid request
-        sharedExtras.additionalParameters = [GoogleStrings.queryTypeKey: GoogleStrings.queryType]
         
         GADMobileAds.sharedInstance().start { initStatus in
             let statuses = initStatus.adapterStatusesByClassName
@@ -169,5 +170,4 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         }
     }
-    
 }

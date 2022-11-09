@@ -15,7 +15,6 @@ final class GoogleBiddingAdapterInterstitialAd: GoogleBiddingAdapterAd, PartnerA
     /// Should be nil for full-screen ads.
     var inlineView: UIView? { nil }
     
-    
     // The GoogleBidding Ad Object
     var ad: GADInterstitialAd?
     
@@ -24,6 +23,14 @@ final class GoogleBiddingAdapterInterstitialAd: GoogleBiddingAdapterAd, PartnerA
     /// - parameter completion: Closure to be performed once the ad has been loaded.
     func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
         log(.loadStarted)
+
+        // Check for valid adm
+        guard request.adm != nil, request.adm != "" else {
+            let error = error(.noBidPayload)
+            log(.loadFailed(error))
+            completion(.failure(error))
+            return
+        }
         
         let gbRequest = generateRequest()
         gbRequest.adString = request.adm
@@ -75,8 +82,7 @@ extension GoogleBiddingAdapterInterstitialAd: GADFullScreenContentDelegate {
     }
     
     func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        let err = self.error(.showFailure, error: error)
-        log(.showFailed(err))
+        log(.showFailed(self.error(.showFailure, error: error)))
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
