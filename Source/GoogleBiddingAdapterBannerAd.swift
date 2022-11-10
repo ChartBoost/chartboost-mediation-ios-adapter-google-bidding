@@ -14,7 +14,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     /// The partner ad view to display inline. E.g. a banner view.
     /// Should be nil for full-screen ads.
     var inlineView: UIView?
-    
+
     // The GoogleBidding Ad Object
     var ad: GADBannerView?
     
@@ -67,15 +67,15 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     
     private func gadAdSizeFrom(cgSize: CGSize?) -> GADAdSize {
         guard let size = cgSize else { return GADAdSizeInvalid }
-        switch (size.width, size.height) {
-        case (320, 50):
-            return GADAdSizeBanner
-        case (300, 250):
-            return GADAdSizeMediumRectangle
-        case (728, 90):
-            return GADAdSizeLeaderboard
-        default:
-            return GADAdSizeInvalid
+            switch size.height {
+            case 50..<90:
+                return GADAdSizeBanner
+            case 90..<250:
+                return GADAdSizeLeaderboard
+            case 250...:
+                return GADAdSizeMediumRectangle
+            default:
+                return GADAdSizeBanner
         }
     }
 }

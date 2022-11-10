@@ -111,7 +111,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
                 self.log(.fetchBidderInfoSucceeded(request))
                 completion(["token":token])
             } else {
-                let e = error ?? HeliumError(code: .unknown, description: "Google did not return an error but token was nil")
+                let e = error ?? HeliumError(code: .unknown, description: "Token was nil")
                 self.log(.fetchBidderInfoFailed(request, error: e))
                 completion([:])
             }
