@@ -44,6 +44,7 @@ class GoogleBiddingAdapterAd: NSObject {
     func generateRequest() -> GADRequest {
         let gbRequest = GADRequest()
         gbRequest.requestAgent = "Helium"
+        gbRequest.adString = request.adm
         
         var parameters: [String : String] = [:]
         // The 3.x code uses [NSString boolValue] to interpret the value of is_hybrid_setup, and mirroring

@@ -95,25 +95,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         gbRequest.register(sharedExtras)
         
         // Convert from our internal AdFormat type to Google's ad format type
-        let gbAdFormat = { () -> GADAdFormat in
-            switch request.format {
-            case .banner:
-                return GADAdFormat.banner
-            case .interstitial:
-                return GADAdFormat.interstitial
-            case .rewarded:
-                return GADAdFormat.rewarded
-            }
-        }()
+        let gbAdFormat = googleAdFormat(from: request.format)
         
         GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
             if let token = queryInfo?.query {
                 self.log(.fetchBidderInfoSucceeded(request))
                 completion(["token":token])
             } else {
-                let e = error ?? HeliumError(code: .unknown, description: "Token was nil")
-                self.log(.fetchBidderInfoFailed(request, error: e))
-                completion([:])
+                let partnerError = self.error(.fetchBidderInfoFailure(request), description: "Token was nil", error: error)
+                self.log(.fetchBidderInfoFailed(request, error: partnerError))
+                completion(nil)
             }
         }
     }
@@ -129,7 +120,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         } else {
             // If GDPR doesn't apply or status is '.granted', then remove the "non-personalized ads" flag
             sharedExtras.additionalParameters?[GoogleStrings.gdprKey] = nil
-            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: "nil"))
+            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: nil))
         }
     }
     
@@ -158,9 +149,6 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// - parameter request: Information about the ad load request.
     /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
     func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
-        // Here you must create a PartnerAd object and return it or throw an error.
-        // You'll have to define your custom type that conforms to PartnerAd. Depending on how you organize your code you may have one single PartnerAdapter type, or multiple ones depending on ad format.
-        
         switch request.format {
         case .banner:
             return GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
@@ -168,6 +156,17 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         case .rewarded:
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+        }
+    }
+
+    func googleAdFormat(from adFormat: AdFormat) -> GADAdFormat {
+        switch adFormat {
+        case .banner:
+            return GADAdFormat.banner
+        case .interstitial:
+            return GADAdFormat.interstitial
+        case .rewarded:
+            return GADAdFormat.rewarded
         }
     }
 }

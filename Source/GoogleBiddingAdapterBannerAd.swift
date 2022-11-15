@@ -40,7 +40,6 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
         }
         
         let gbRequest = generateRequest()
-        gbRequest.adString = request.adm
 
         let placementID = request.partnerPlacement
 

@@ -33,7 +33,6 @@ final class GoogleBiddingAdapterInterstitialAd: GoogleBiddingAdapterAd, PartnerA
         }
         
         let gbRequest = generateRequest()
-        gbRequest.adString = request.adm
         GADInterstitialAd.load(withAdUnitID:self.request.partnerPlacement,
                                request: gbRequest) { [weak self] ad, error in
             guard let self = self else { return }
@@ -44,6 +43,7 @@ final class GoogleBiddingAdapterInterstitialAd: GoogleBiddingAdapterAd, PartnerA
             }
             self.ad = ad
             ad?.fullScreenContentDelegate = self
+            self.log(.loadSucceeded)
             completion(.success([:]))
         }
     }
@@ -89,6 +89,7 @@ extension GoogleBiddingAdapterInterstitialAd: GADFullScreenContentDelegate {
     
     // Google has deprecated adDidPresentFullScreenContent and says to use this delegate method instead
     func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+        log(.showSucceeded)
         showCompletion?(.success([:])) ?? log(.showResultIgnored)
         showCompletion = nil
     }
