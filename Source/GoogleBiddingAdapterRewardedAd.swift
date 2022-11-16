@@ -10,7 +10,6 @@ import GoogleMobileAds
 import HeliumSdk
 
 final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
-    
     /// The partner ad view to display inline. E.g. a banner view.
     /// Should be nil for full-screen ads.
     var inlineView: UIView? { nil }
