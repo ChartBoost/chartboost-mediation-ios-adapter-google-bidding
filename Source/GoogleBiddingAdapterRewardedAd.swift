@@ -22,6 +22,14 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
     /// - parameter completion: Closure to be performed once the ad has been loaded.
     func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
         log(.loadStarted)
+
+        // Check for valid adm
+        guard request.adm != nil, request.adm != "" else {
+            let error = error(.noBidPayload)
+            log(.loadFailed(error))
+            completion(.failure(error))
+            return
+        }
         
         let gbRequest = generateRequest()
         GADRewardedAd.load(withAdUnitID:self.request.partnerPlacement,
@@ -45,14 +53,6 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
     /// - parameter completion: Closure to be performed once the ad has been shown.
     func show(with viewController: UIViewController, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
         log(.showStarted)
-
-        // Check for valid adm
-        guard request.adm != nil, request.adm != "" else {
-            let error = error(.noBidPayload)
-            log(.loadFailed(error))
-            completion(.failure(error))
-            return
-        }
         
         guard let ad = ad else {
             let error = error(.noAdReadyToShow)

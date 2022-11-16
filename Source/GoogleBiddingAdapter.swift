@@ -13,7 +13,7 @@ import HeliumSdk
 enum GoogleStrings {
     static let ccpaKey = "gap_rdp"
     static let gadClassName = "GADMobileAds"
-    static let gdprKey = "npa"
+    static let nonPersonalizedAdsKey = "npa"
     static let isHybridKey = "is_hybrid_setup"
     static let queryType = "requester_type_2"
     static let queryTypeKey = "query_info_type"
@@ -100,7 +100,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
             if let token = queryInfo?.query {
                 self.log(.fetchBidderInfoSucceeded(request))
-                completion(["token":token])
+                completion(["token": token])
             } else {
                 let partnerError = self.error(.fetchBidderInfoFailure(request), description: "Token was nil", error: error)
                 self.log(.fetchBidderInfoFailed(request, error: partnerError))
@@ -115,12 +115,12 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func setGDPR(applies: Bool?, status: GDPRConsentStatus) {
         if applies == true && status != .granted {
             // Set "npa" to "1" by merging with the existing extras dictionary if it's non-nil and overwriting the old value if keys collide
-            sharedExtras.additionalParameters = (sharedExtras.additionalParameters ?? [:]).merging([GoogleStrings.gdprKey:"1"], uniquingKeysWith: { (_, new) in new })
-            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: "1"))
+            sharedExtras.additionalParameters = (sharedExtras.additionalParameters ?? [:]).merging([GoogleStrings.nonPersonalizedAdsKey:"1"], uniquingKeysWith: { (_, new) in new })
+            log(.privacyUpdated(setting: GoogleStrings.nonPersonalizedAdsKey, value: "1"))
         } else {
             // If GDPR doesn't apply or status is '.granted', then remove the "non-personalized ads" flag
-            sharedExtras.additionalParameters?[GoogleStrings.gdprKey] = nil
-            log(.privacyUpdated(setting: GoogleStrings.gdprKey, value: nil))
+            sharedExtras.additionalParameters?[GoogleStrings.nonPersonalizedAdsKey] = nil
+            log(.privacyUpdated(setting: GoogleStrings.nonPersonalizedAdsKey, value: nil))
         }
     }
     

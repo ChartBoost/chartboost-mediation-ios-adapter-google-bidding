@@ -17,7 +17,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     }
 
     // The GoogleBidding Ad Object
-    var ad: GADBannerView
+    var ad: GADBannerView?
 
     override init(adapter: PartnerAdapter,
                   request: PartnerAdLoadRequest,
@@ -31,6 +31,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     /// - parameter viewController: The view controller on which the ad will be presented on. Needed on load for some banners.
     /// - parameter completion: Closure to be performed once the ad has been loaded.
     func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
+        log(.loadStarted)
         loadCompletion = completion
 
         // Banner ads auto-show after loading, so we must have a ViewController
@@ -54,11 +55,11 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
-            self.ad.adUnitID = placementID
-            self.ad.isAutoloadEnabled = false
-            self.ad.delegate = self
-            self.ad.rootViewController = viewController
-            self.ad.load(gbRequest)
+            self.ad?.adUnitID = placementID
+            self.ad?.isAutoloadEnabled = false
+            self.ad?.delegate = self
+            self.ad?.rootViewController = viewController
+            self.ad?.load(gbRequest)
         }
     }
     
@@ -90,7 +91,6 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
 
     func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
         log(.loadSucceeded)
-        self.inlineView = bannerView
         loadCompletion?(.success([:])) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
