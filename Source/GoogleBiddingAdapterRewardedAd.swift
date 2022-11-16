@@ -93,7 +93,7 @@ extension GoogleBiddingAdapterRewardedAd: GADFullScreenContentDelegate {
     
     // Google has deprecated adDidPresentFullScreenContent and says to use this delegate method instead
     func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
-        self.log(.loadSucceeded)
+        log(.showSucceeded)
         showCompletion?(.success([:])) ?? log(.showResultIgnored)
         showCompletion = nil
     }
