@@ -85,8 +85,7 @@ extension GoogleBiddingAdapterInterstitialAd: GADFullScreenContentDelegate {
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
-    
-    // Google has deprecated adDidPresentFullScreenContent and says to use this delegate method instead
+
     func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         log(.showSucceeded)
         showCompletion?(.success([:])) ?? log(.showResultIgnored)
