@@ -47,9 +47,7 @@ class GoogleBiddingAdapterAd: NSObject {
         gbRequest.adString = request.adm
         
         var parameters: [String: Any] = [:]
-        // The 3.x code uses [NSString boolValue] to interpret the value of is_hybrid_setup, and mirroring
-        // that is probably the best way to get consistent results as the upstream code is evolving
-        if let isHybrid = (request.partnerSettings[GoogleStrings.isHybridKey] as? NSString)?.boolValue,
+        if let isHybrid = request.partnerSettings[GoogleStrings.isHybridKey] as? Bool,
             isHybrid == true {
             parameters[GoogleStrings.isHybridKey] = true
             
