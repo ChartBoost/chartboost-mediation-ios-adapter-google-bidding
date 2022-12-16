@@ -62,9 +62,7 @@ final class GoogleBiddingAdapterInterstitialAd: GoogleBiddingAdapterAd, PartnerA
         }
         showCompletion = completion
         
-        DispatchQueue.main.async {
-            ad.present(fromRootViewController: viewController)
-        }
+        ad.present(fromRootViewController: viewController)
     }
 }
 
