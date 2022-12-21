@@ -12,13 +12,8 @@ import HeliumSdk
 class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     /// The partner ad view to display inline. E.g. a banner view.
     /// Should be nil for full-screen ads.
-    var inlineView: UIView? {
-        return self.ad
-    }
-
-    // The GoogleBidding Ad Object
-    var ad: GADBannerView?
-
+    var inlineView: UIView?
+    
     /// Loads an ad.
     /// - parameter viewController: The view controller on which the ad will be presented on. Needed on load for some banners.
     /// - parameter completion: Closure to be performed once the ad has been loaded.
@@ -41,20 +36,17 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
             return
         }
         
+        // Create banner
+        let bannerView = GADBannerView(adSize: gadAdSizeFrom(cgSize: request.size))
+        bannerView.adUnitID = request.partnerPlacement
+        bannerView.isAutoloadEnabled = false
+        bannerView.delegate = self
+        bannerView.rootViewController = viewController
+        inlineView = bannerView
+        
+        // Load banner
         let gbRequest = generateRequest()
-        let placementID = request.partnerPlacement
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
-            let bannerView = GADBannerView(adSize: self.gadAdSizeFrom(cgSize: self.request.size))
-            bannerView.adUnitID = placementID
-            bannerView.isAutoloadEnabled = false
-            bannerView.delegate = self
-            bannerView.rootViewController = viewController
-            self.ad = bannerView
-            bannerView.load(gbRequest)
-        }
+        bannerView.load(gbRequest)
     }
     
     /// Shows a loaded ad.
@@ -97,10 +89,10 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
     }
 
     func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
-        self.delegate?.didTrackImpression(self, details: [:]) ?? log(.delegateUnavailable)
+        delegate?.didTrackImpression(self, details: [:]) ?? log(.delegateUnavailable)
     }
 
     func bannerViewDidRecordClick(_ bannerView: GADBannerView) {
-        self.delegate?.didClick(self, details: [:]) ?? log(.delegateUnavailable)
+        delegate?.didClick(self, details: [:]) ?? log(.delegateUnavailable)
     }
 }
