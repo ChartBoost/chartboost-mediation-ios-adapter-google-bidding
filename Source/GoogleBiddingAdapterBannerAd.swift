@@ -23,14 +23,14 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
 
         // Banner ads auto-show after loading, so we must have a ViewController
         guard viewController != nil else {
-            let error = error(.noViewController)
+            let error = error(.showFailureViewControllerNotFound)
             log(.loadFailed(error))
             completion(.failure(error))
             return
         }
         // Check for valid adm
         guard request.adm != nil, request.adm != "" else {
-            let error = error(.noBidPayload)
+            let error = error(.loadFailureInvalidAdMarkup)
             log(.loadFailed(error))
             completion(.failure(error))
             return
@@ -82,7 +82,7 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
     }
 
     func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
-        let error = self.error(.loadFailure)
+        let error = self.error(.loadFailureException, error: error)
         log(.loadFailed(error))
         loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil

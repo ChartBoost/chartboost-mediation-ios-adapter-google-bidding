@@ -25,7 +25,7 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
 
         // Check for valid adm
         guard request.adm != nil, request.adm != "" else {
-            let error = error(.noBidPayload)
+            let error = error(.loadFailureInvalidAdMarkup)
             log(.loadFailed(error))
             completion(.failure(error))
             return
@@ -55,7 +55,7 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
         log(.showStarted)
         
         guard let ad = ad else {
-            let error = error(.noAdReadyToShow)
+            let error = error(.showFailureAdNotReady)
             log(.showFailed(error))
             completion(.failure(error))
             return
@@ -83,7 +83,7 @@ extension GoogleBiddingAdapterRewardedAd: GADFullScreenContentDelegate {
     }
     
     func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        log(.showFailed(self.error(.showFailure, error: error)))
+        log(.showFailed(self.error(.showFailureException, error: error)))
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
