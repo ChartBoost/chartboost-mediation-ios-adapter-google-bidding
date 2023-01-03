@@ -76,7 +76,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
                 self.log(.setUpSucceded)
                 completion(nil)
             } else {
-                let error = self.error(.setUpFailure,
+                let error = self.error(.initializationFailureUnknown,
                                        description: "GoogleBidding adapter status was \(String(describing: statuses[GoogleStrings.gadClassName]?.state))")
                 self.log(.setUpFailed(error))
                 completion(error)
@@ -102,7 +102,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
                 self.log(.fetchBidderInfoSucceeded(request))
                 completion(["token": token])
             } else {
-                let partnerError = self.error(.fetchBidderInfoFailure(request), description: "Token was nil", error: error)
+                let partnerError = self.error(.prebidFailureUnknown, description: "Token was nil", error: error)
                 self.log(.fetchBidderInfoFailed(request, error: partnerError))
                 completion(nil)
             }
@@ -157,7 +157,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         case .rewarded:
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         @unknown default:
-            throw error(.adFormatNotSupported(request))
+            throw error(.loadFailureUnsupportedAdFormat)
         }
     }
 
