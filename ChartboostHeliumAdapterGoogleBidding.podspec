@@ -2,7 +2,7 @@ Pod::Spec.new do |spec|
   spec.name        = 'ChartboostHeliumAdapterGoogleBidding'
   spec.version     = '4.9.12.0.0'
   spec.license     = { :type => 'MIT', :file => 'LICENSE.md' }
-  spec.homepage    = 'https://github.com/ChartBoost/helium-ios-adapter-chartboost'
+  spec.homepage    = 'https://github.com/ChartBoost/helium-ios-adapter-google-bidding'
   spec.authors     = { 'Chartboost' => 'https://www.chartboost.com/' }
   spec.summary     = 'Helium iOS SDK Google Bidding adapter.'
   spec.description = 'Google Bidding Adapters for mediating through Helium. Supported ad formats: Banner, Interstitial, and Rewarded.'
