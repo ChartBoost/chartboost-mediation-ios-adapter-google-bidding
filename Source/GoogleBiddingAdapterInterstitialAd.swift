@@ -79,7 +79,7 @@ extension GoogleBiddingAdapterInterstitialAd: GADFullScreenContentDelegate {
     }
     
     func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        log(.showFailed(self.error(.showFailureUnknown, error: error)))
+        log(.showFailed(error))
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
