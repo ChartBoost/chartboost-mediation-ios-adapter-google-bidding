@@ -89,6 +89,7 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
     }
 
     func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+        log(.didTrackImpression)
         delegate?.didTrackImpression(self, details: [:]) ?? log(.delegateUnavailable)
     }
 
