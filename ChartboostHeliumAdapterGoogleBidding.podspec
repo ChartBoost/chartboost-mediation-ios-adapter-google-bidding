@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
 
   # Source
   spec.module_name  = 'HeliumAdapterGoogleBidding'
-  spec.source       = { :git => 'https://github.com/ChartBoost/helium-ios-adapter-google-bidding.git', :tag => '#{spec.version}' }
+  spec.source       = { :git => 'https://github.com/ChartBoost/helium-ios-adapter-google-bidding.git', :tag => spec.version }
   spec.source_files = 'Source/**/*.{swift}'
 
   # Minimum supported versions
