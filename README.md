@@ -1,6 +1,6 @@
 # Chartboost Mediation Google Bidding Adapter
 
-The Chartboost Mediation Google Bidding adapter mediates the Google Bidding SDK into the Chartboost Mediation SDK.
+The Chartboost Mediation Google Bidding adapter mediates Google Bidding via the Chartboost Mediation SDK.
 
 ## Minimum Requirements
 
