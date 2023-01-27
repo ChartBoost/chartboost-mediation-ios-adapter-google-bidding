@@ -5,7 +5,7 @@
 
 //
 // GoogleBiddingAdapterRewardedAd.swift
-// GoogleBiddingAdapter
+// ChartboostMediationAdapterGoogleBidding
 //
 // Created by Alex Rice on 10/03/22
 //

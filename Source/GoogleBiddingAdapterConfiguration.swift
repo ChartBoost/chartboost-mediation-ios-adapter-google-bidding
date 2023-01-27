@@ -5,7 +5,7 @@
 
 //
 //  GoogleBiddingAdapterConfiguration.swift
-//  GoogleBiddingAdapter
+//  ChartboostMediationAdapterGoogleBidding
 //
 //  Created by Alex Rice on 11/03/22.
 //
