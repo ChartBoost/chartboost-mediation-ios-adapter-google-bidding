@@ -1,14 +1,7 @@
 // Copyright 2022-2023 Chartboost, Inc.
-// 
+//
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
-
-//
-// GoogleBiddingAdapter.swift
-// ChartboostMediationAdapterGoogleBidding
-//
-// Created by Alex Rice on 10/03/22
-//
 
 import ChartboostMediationSDK
 import Foundation
