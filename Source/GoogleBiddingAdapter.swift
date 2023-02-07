@@ -89,7 +89,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         log(.fetchBidderInfoStarted(request))
         
         let gbRequest = GADRequest()
-        gbRequest.requestAgent = "Helium"
+        gbRequest.requestAgent = "Chartboost"
         gbRequest.register(sharedExtras)
         
         // Convert from our internal AdFormat type to Google's ad format type

@@ -41,7 +41,7 @@ class GoogleBiddingAdapterAd: NSObject {
     /// Configure the request object that will be sent to GoogleBidding
     func generateRequest() -> GADRequest {
         let gbRequest = GADRequest()
-        gbRequest.requestAgent = "Helium"
+        gbRequest.requestAgent = "Chartboost"
         gbRequest.adString = request.adm
         
         var parameters: [String: Any] = [:]
