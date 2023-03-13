@@ -30,8 +30,10 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
         }
         
         let gbRequest = generateRequest()
-        GADRewardedAd.load(withAdUnitID:self.request.partnerPlacement,
-                                request: gbRequest) { [weak self] ad, error in
+        GADRewardedAd.load(
+            withAdUnitID:self.request.partnerPlacement,
+            request: gbRequest
+        ) { [weak self] ad, error in
             guard let self = self else { return }
             if let error = error {
                 self.log(.loadFailed(error))
