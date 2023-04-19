@@ -161,7 +161,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         case .rewarded:
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
-        @unknown default:
+        default:
             throw error(.loadFailureUnsupportedAdFormat)
         }
     }
@@ -250,7 +250,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return GADAdFormat.interstitial
         case .rewarded:
             return GADAdFormat.rewarded
-        @unknown default:
+        default:
             return GADAdFormat.unknown
         }
     }
