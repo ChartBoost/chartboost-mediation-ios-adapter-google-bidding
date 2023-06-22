@@ -7,13 +7,13 @@ import ChartboostMediationSDK
 import Foundation
 import GoogleMobileAds
 
-final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
+final class GoogleBiddingAdapterRewardedInterstitialAd: GoogleBiddingAdapterAd, PartnerAd {
     /// The partner ad view to display inline. E.g. a banner view.
     /// Should be nil for full-screen ads.
     var inlineView: UIView? { nil }
 
     // The GoogleBidding Ad Object
-    var ad: GADRewardedAd?
+    var ad: GADRewardedInterstitialAd?
     
     /// Loads an ad.
     /// - parameter viewController: The view controller on which the ad will be presented. Needed on load for some banners.
@@ -30,8 +30,8 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
         }
         
         let gbRequest = generateRequest()
-        GADRewardedAd.load(
-            withAdUnitID:self.request.partnerPlacement,
+        GADRewardedInterstitialAd.load(
+            withAdUnitID: request.partnerPlacement,
             request: gbRequest
         ) { [weak self] ad, error in
             guard let self = self else { return }
@@ -70,7 +70,7 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
     }
 }
 
-extension GoogleBiddingAdapterRewardedAd: GADFullScreenContentDelegate {
+extension GoogleBiddingAdapterRewardedInterstitialAd: GADFullScreenContentDelegate {
     
     func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
         log(.didTrackImpression)
