@@ -22,16 +22,14 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     
     /// The version of the partner SDK.
     var partnerSDKVersion: String {
-        // GADMobileAds SDK version is formatted like "afma-sdk-i-v9.14.0".
-        // We attempt to retrieve only the semantic version by stripping the prefix.
-        GADMobileAds.sharedInstance().sdkVersion
-            .replacingOccurrences(of: "afma-sdk-i-v", with: "")
+        let versionNumber = GADMobileAds.sharedInstance().versionNumber
+        return "\(versionNumber.majorVersion).\(versionNumber.minorVersion).\(versionNumber.patchVersion)"
     }
     
     /// The version of the adapter.
     /// It should have either 5 or 6 digits separated by periods, where the first digit is Chartboost Mediation SDK's major version, the last digit is the adapter's build version, and intermediate digits are the partner SDK's version.
     /// Format: `<Chartboost Mediation major version>.<Partner major version>.<Partner minor version>.<Partner patch version>.<Partner build version>.<Adapter build version>` where `.<Partner build version>` is optional.
-    let adapterVersion = "4.10.6.0.0"
+    let adapterVersion = "4.10.9.0.0"
     
     /// The partner's unique identifier.
     let partnerIdentifier = "google_googlebidding"
@@ -143,7 +141,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func setCOPPA(isChildDirected: Bool) {
         // See https://developers.google.com/admob/ios/api/reference/Classes/GADRequestConfiguration#-tagforchilddirectedtreatment:
         log(.privacyUpdated(setting: "ChildDirectedTreatment", value: isChildDirected))
-        GADMobileAds.sharedInstance().requestConfiguration.tag(forChildDirectedTreatment: isChildDirected)
+        GADMobileAds.sharedInstance().requestConfiguration.tagForChildDirectedTreatment = NSNumber(booleanLiteral: isChildDirected)
     }
     
     /// Creates a new ad object in charge of communicating with a single partner SDK ad instance.
