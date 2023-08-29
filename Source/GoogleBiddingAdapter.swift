@@ -160,9 +160,11 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         case .rewarded:
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         default:
-            // Not using the `.rewardedInterstitial` case directly to maintain backward compatibility with Chartboost Mediation 4.0
+            // Not using the `.rewardedInterstitial` or `.adaptive_banner` cases directly to maintain backward compatibility with Chartboost Mediation 4.0
             if request.format.rawValue == "rewarded_interstitial" {
                 return GoogleBiddingAdapterRewardedInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+            } else if request.format.rawValue == "adaptive_banner" {
+                return GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
             } else {
                 throw error(.loadFailureUnsupportedAdFormat)
             }
