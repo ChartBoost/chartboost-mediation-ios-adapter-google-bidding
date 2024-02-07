@@ -96,8 +96,13 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         gbRequest.register(sharedExtras)
         
         // Convert from our internal AdFormat type to Google's ad format type
-        let gbAdFormat = googleAdFormat(from: request.format)
-        
+        guard let gbAdFormat = googleAdFormat(from: request.format) else {
+            let error = error(.prebidFailureUnknown, description: "Failed to map ad format \(request.format) to GADAdFormat")
+            log(.fetchBidderInfoFailed(request, error: error))
+            completion(nil)
+            return
+        }
+
         GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
             if let token = queryInfo?.query {
                 self.log(.fetchBidderInfoSucceeded(request))
@@ -248,7 +253,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         }
     }
     
-    func googleAdFormat(from adFormat: AdFormat) -> GADAdFormat {
+    func googleAdFormat(from adFormat: AdFormat) -> GADAdFormat? {
         switch adFormat {
         case .banner:
             return GADAdFormat.banner
@@ -257,7 +262,14 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         case .rewarded:
             return GADAdFormat.rewarded
         default:
-            return GADAdFormat.unknown
+            // Not using the `.rewardedInterstitial` or `.adaptive_banner` cases directly to maintain backward compatibility with Chartboost Mediation 4.0
+            if adFormat.rawValue == "rewarded_interstitial" {
+                return GADAdFormat.rewardedInterstitial
+            } else if adFormat.rawValue == "adaptive_banner" {
+                return GADAdFormat.banner
+            } else {
+                return nil
+            }
         }
     }
 }
