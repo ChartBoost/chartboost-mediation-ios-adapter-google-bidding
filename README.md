@@ -8,7 +8,7 @@ The Chartboost Mediation Google Bidding adapter mediates Google Bidding via the 
 | ------ | ------ |
 | Chartboost Mediation SDK | 4.0.0+ |
 | Cocoapods | 1.11.3+ |
-| iOS | 11.0+ |
+| iOS | 12.0+ |
 | Xcode | 14.1+ |
 
 ## Integration
