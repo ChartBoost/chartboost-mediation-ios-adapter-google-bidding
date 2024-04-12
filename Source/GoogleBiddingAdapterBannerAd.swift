@@ -12,10 +12,14 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     /// Should be nil for full-screen ads.
     var inlineView: UIView?
     
+    /// The loaded partner ad banner size.
+    /// Should be `nil` for full-screen ads.
+    var bannerSize: PartnerBannerSize?
+
     /// Loads an ad.
     /// - parameter viewController: The view controller on which the ad will be presented on. Needed on load for some banners.
     /// - parameter completion: Closure to be performed once the ad has been loaded.
-    func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
+    func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.loadStarted)
         loadCompletion = completion
 
@@ -51,14 +55,14 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
     /// It will never get called for banner ads. You may leave the implementation blank for that ad format.
     /// - parameter viewController: The view controller on which the ad will be presented on.
     /// - parameter completion: Closure to be performed once the ad has been shown.
-    func show(with viewController: UIViewController, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
+    func show(with viewController: UIViewController, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         // no-op
     }
     
-    private func gadAdSizeFrom(cgSize: CGSize?, format: AdFormat) -> GADAdSize {
+    private func gadAdSizeFrom(cgSize: CGSize?, format: PartnerAdFormat) -> GADAdSize {
         guard let size = cgSize else { return GADAdSizeInvalid }
 
-        if format == .banner {
+        if format == PartnerAdFormats.banner {
             switch size.height {
             case 50..<90:
                 return GADAdSizeBanner
@@ -83,17 +87,11 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
         // From https://developers.google.com/admob/ios/api/reference/Functions:
         // "The exact size of the ad returned is passed through the banner’s ad size delegate and
         // is indicated by the banner’s intrinsicContentSize."
-        let loadedSize = bannerView.intrinsicContentSize
-        let partnerDetails = [
-            "bannerWidth": "\(loadedSize.width)",
-            "bannerHeight": "\(loadedSize.height)",
-            // Determine if this is a fluid size ad or not. If the frame of a non-fluid adaptive ad
-            // is changed by even 1px, it will trigger a reload, so we want to avoid this by
-            // returning fixed in this case.
-            // 0 for fixed size banner, 1 for adaptive banner.
-            "bannerType": GADAdSizeIsFluid(bannerView.adSize) ? "1" : "0"
-        ]
-        loadCompletion?(.success(partnerDetails)) ?? log(.loadResultIgnored)
+        bannerSize = PartnerBannerSize(
+            size: bannerView.intrinsicContentSize,
+            type: GADAdSizeIsFluid(bannerView.adSize) ? .adaptive : .fixed
+        )
+        loadCompletion?(.success([:])) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 
