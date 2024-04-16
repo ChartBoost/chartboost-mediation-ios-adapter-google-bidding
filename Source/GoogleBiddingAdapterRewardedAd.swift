@@ -12,13 +12,17 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
     /// Should be nil for full-screen ads.
     var inlineView: UIView? { nil }
 
+    /// The loaded partner ad banner size.
+    /// Should be `nil` for full-screen ads.
+    var bannerSize: PartnerBannerSize? { nil }
+
     // The GoogleBidding Ad Object
     var ad: GADRewardedAd?
     
     /// Loads an ad.
     /// - parameter viewController: The view controller on which the ad will be presented. Needed on load for some banners.
     /// - parameter completion: Closure to be performed once the ad has been loaded.
-    func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
+    func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.loadStarted)
 
         // Check for valid adm
@@ -51,7 +55,7 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerAd {
     /// It will never get called for banner ads. You may leave the implementation blank for that ad format.
     /// - parameter viewController: The view controller on which the ad will be presented.
     /// - parameter completion: Closure to be performed once the ad has been shown.
-    func show(with viewController: UIViewController, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
+    func show(with viewController: UIViewController, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.showStarted)
         
         guard let ad = ad else {

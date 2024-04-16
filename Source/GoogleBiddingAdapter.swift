@@ -32,7 +32,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     let adapterVersion = "4.11.2.0.0"
     
     /// The partner's unique identifier.
-    let partnerIdentifier = "google_googlebidding"
+    let partnerID = "google_googlebidding"
     
     /// The human-friendly partner name.
     let partnerDisplayName = "Google bidding"
@@ -51,7 +51,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// Does any setup needed before beginning to load ads.
     /// - parameter configuration: Configuration data for the adapter to set up.
     /// - parameter completion: Closure to be performed by the adapter when it's done setting up. It should include an error indicating the cause for failure or `nil` if the operation finished successfully.
-    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Error?) -> Void) {
+    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.setUpStarted)
         
         // Parameters that need to be on every Google bidding request
@@ -67,7 +67,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             log("Redundant call to initalize GoogleMobileAds was ignored")
             // We should log either success or failure before returning, and this is more like success.
             log(.setUpSucceded)
-            completion(nil)
+            completion(.success([:]))
             return
         }
         
@@ -75,12 +75,14 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             let statuses = initStatus.adapterStatusesByClassName
             if statuses[GoogleStrings.gadClassName]?.state == .ready {
                 self.log(.setUpSucceded)
-                completion(nil)
+                completion(.success([:]))
             } else {
-                let error = self.error(.initializationFailureUnknown,
-                                       description: "GoogleBidding adapter status was \(String(describing: statuses[GoogleStrings.gadClassName]?.state))")
+                let error = self.error(
+                    .initializationFailureUnknown,
+                    description: "GoogleBidding adapter status was \(String(describing: statuses[GoogleStrings.gadClassName]?.state))"
+                )
                 self.log(.setUpFailed(error))
-                completion(error)
+                completion(.failure(error))
             }
         }
     }
@@ -88,7 +90,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// Fetches bidding tokens needed for the partner to participate in an auction.
     /// - parameter request: Information about the ad load request.
     /// - parameter completion: Closure to be performed with the fetched info.
-    func fetchBidderInformation(request: PreBidRequest, completion: @escaping ([String: String]?) -> Void) {
+    func fetchBidderInformation(request: PartnerAdPreBidRequest, completion: @escaping (Result<[String: String], Error>) -> Void) {
         log(.fetchBidderInfoStarted(request))
         
         let gbRequest = GADRequest()
@@ -99,18 +101,18 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         guard let gbAdFormat = googleAdFormat(from: request.format) else {
             let error = error(.prebidFailureUnknown, description: "Failed to map ad format \(request.format) to GADAdFormat")
             log(.fetchBidderInfoFailed(request, error: error))
-            completion(nil)
+            completion(.failure(error))
             return
         }
 
         GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
-            if let token = queryInfo?.query {
-                self.log(.fetchBidderInfoSucceeded(request))
-                completion(["token": token])
+            if let error {
+                self.log(.fetchBidderInfoFailed(request, error: error))
+                completion(.failure(error))
             } else {
-                let partnerError = self.error(.prebidFailureUnknown, description: "Token was nil", error: error)
-                self.log(.fetchBidderInfoFailed(request, error: partnerError))
-                completion(nil)
+                self.log(.fetchBidderInfoSucceeded(request))
+                let token = queryInfo?.query
+                completion(.success(token.map { ["token": $0] } ?? [:]))
             }
         }
     }
@@ -159,21 +161,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
         // This partner supports multiple loads for the same partner placement.
         switch request.format {
-        case .banner:
+        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
             return GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
-        case .interstitial:
+        case PartnerAdFormats.interstitial:
             return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
-        case .rewarded:
+        case PartnerAdFormats.rewarded:
             return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+        case PartnerAdFormats.rewardedInterstitial:
+            return GoogleBiddingAdapterRewardedInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         default:
-            // Not using the `.rewardedInterstitial` or `.adaptive_banner` cases directly to maintain backward compatibility with Chartboost Mediation 4.0
-            if request.format.rawValue == "rewarded_interstitial" {
-                return GoogleBiddingAdapterRewardedInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
-            } else if request.format.rawValue == "adaptive_banner" {
-                return GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
-            } else {
-                throw error(.loadFailureUnsupportedAdFormat)
-            }
+            throw error(.loadFailureUnsupportedAdFormat)
         }
     }
     
@@ -253,23 +250,18 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         }
     }
     
-    func googleAdFormat(from adFormat: AdFormat) -> GADAdFormat? {
+    func googleAdFormat(from adFormat: PartnerAdFormat) -> GADAdFormat? {
         switch adFormat {
-        case .banner:
+        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
             return GADAdFormat.banner
-        case .interstitial:
+        case PartnerAdFormats.interstitial:
             return GADAdFormat.interstitial
-        case .rewarded:
+        case PartnerAdFormats.rewarded:
             return GADAdFormat.rewarded
+        case PartnerAdFormats.rewardedInterstitial:
+            return GADAdFormat.rewardedInterstitial
         default:
-            // Not using the `.rewardedInterstitial` or `.adaptive_banner` cases directly to maintain backward compatibility with Chartboost Mediation 4.0
-            if adFormat.rawValue == "rewarded_interstitial" {
-                return GADAdFormat.rewardedInterstitial
-            } else if adFormat.rawValue == "adaptive_banner" {
-                return GADAdFormat.banner
-            } else {
-                return nil
-            }
+            return nil
         }
     }
 }
