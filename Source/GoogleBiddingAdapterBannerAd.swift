@@ -39,7 +39,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
         }
         
         // Create banner
-        let bannerView = GADBannerView(adSize: gadAdSizeFrom(cgSize: request.size, format: request.format))
+        let bannerView = GADBannerView(adSize: gadAdSize(from: request.bannerSize))
         bannerView.adUnitID = request.partnerPlacement
         bannerView.isAutoloadEnabled = false
         bannerView.delegate = self
@@ -59,11 +59,12 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
         // no-op
     }
     
-    private func gadAdSizeFrom(cgSize: CGSize?, format: PartnerAdFormat) -> GADAdSize {
-        guard let size = cgSize else { return GADAdSizeInvalid }
+    private func gadAdSize(from requestedSize: BannerSize?) -> GADAdSize {
+        guard let requestedSize else { return GADAdSizeInvalid }
 
-        if format == PartnerAdFormats.banner {
-            switch size.height {
+        if requestedSize.type == .fixed {
+            // Fixed size banner
+            switch requestedSize.size.height {
             case 50..<90:
                 return GADAdSizeBanner
             case 90..<250:
@@ -75,7 +76,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerAd {
             }
         } else {
             // Adaptive banner
-            return GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(size.width, size.height)
+            return GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(requestedSize.size.width, requestedSize.size.height)
         }
     }
 }
