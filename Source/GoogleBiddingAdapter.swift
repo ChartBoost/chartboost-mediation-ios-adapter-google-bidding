@@ -161,7 +161,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
         // This partner supports multiple loads for the same partner placement.
         switch request.format {
-        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
+        case PartnerAdFormats.banner:
             return GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
         case PartnerAdFormats.interstitial:
             return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
@@ -252,7 +252,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     
     func googleAdFormat(from adFormat: PartnerAdFormat) -> GADAdFormat? {
         switch adFormat {
-        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
+        case PartnerAdFormats.banner:
             return GADAdFormat.banner
         case PartnerAdFormats.interstitial:
             return GADAdFormat.interstitial
