@@ -265,7 +265,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     
     func googleAdFormat(from adFormat: PartnerAdFormat) -> GADAdFormat? {
         switch adFormat {
-        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
+        case PartnerAdFormats.banner:
             return GADAdFormat.banner
         case PartnerAdFormats.interstitial:
             return GADAdFormat.interstitial
