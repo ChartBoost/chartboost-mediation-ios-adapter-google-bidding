@@ -151,7 +151,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         GADMobileAds.sharedInstance().requestConfiguration.tagForChildDirectedTreatment = NSNumber(booleanLiteral: isChildDirected)
     }
     
-        /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
+    /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
     /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
     /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
     /// ``PartnerAd/invalidate()`` is called on ads before disposing of them in case partners need to perform any custom logic before the
