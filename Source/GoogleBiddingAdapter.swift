@@ -108,7 +108,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         
         // Convert from our internal AdFormat type to Google's ad format type
         guard let gbAdFormat = googleAdFormat(from: request.format) else {
-            let error = error(.prebidFailureUnknown, description: "Failed to map ad format \(request.format) to GADAdFormat")
+            let error = error(.prebidFailureUnsupportedAdFormat, description: "Failed to map ad format \(request.format) to GADAdFormat")
             log(.fetchBidderInfoFailed(request, error: error))
             completion(.failure(error))
             return
