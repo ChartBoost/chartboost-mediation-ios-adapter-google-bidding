@@ -37,7 +37,17 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerBannerAd {
         }
         
         // Create banner
-        let bannerView = GADBannerView(adSize: gadAdSize(from: request.bannerSize))
+        guard
+            let requestedSize = request.bannerSize,
+            let gadSize = requestedSize.gadAdSize
+        else {
+            // Fail if we cannot fit a fixed size banner in the requested size.
+            let error = error(.loadFailureInvalidBannerSize)
+            log(.loadFailed(error))
+            return completion(.failure(error))
+        }
+
+        let bannerView = GADBannerView(adSize: gadSize)
         bannerView.adUnitID = request.partnerPlacement
         bannerView.isAutoloadEnabled = false
         bannerView.delegate = self
@@ -47,27 +57,6 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerBannerAd {
         // Load banner
         let gbRequest = generateRequest()
         bannerView.load(gbRequest)
-    }
-    
-    private func gadAdSize(from requestedSize: BannerSize?) -> GADAdSize {
-        guard let requestedSize else { return GADAdSizeInvalid }
-
-        if requestedSize.type == .fixed {
-            // Fixed size banner
-            switch requestedSize.size.height {
-            case 50..<90:
-                return GADAdSizeBanner
-            case 90..<250:
-                return GADAdSizeLeaderboard
-            case 250...:
-                return GADAdSizeMediumRectangle
-            default:
-                return GADAdSizeBanner
-            }
-        } else {
-            // Adaptive banner
-            return GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(requestedSize.size.width, requestedSize.size.height)
-        }
     }
 }
 
@@ -99,5 +88,23 @@ extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
 
     func bannerViewDidRecordClick(_ bannerView: GADBannerView) {
         delegate?.didClick(self, details: [:]) ?? log(.delegateUnavailable)
+    }
+}
+
+extension BannerSize {
+    fileprivate var gadAdSize: GADAdSize? {
+        if self.type == .adaptive {
+            return GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(self.size.width, self.size.height)
+        }
+        switch self {
+        case .standard:
+            return GADAdSizeBanner
+        case .medium:
+            return GADAdSizeMediumRectangle
+        case .leaderboard:
+            return GADAdSizeLeaderboard
+        default:
+            return nil
+        }
     }
 }
