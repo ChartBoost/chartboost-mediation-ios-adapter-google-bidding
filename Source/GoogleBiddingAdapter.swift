@@ -29,8 +29,8 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// The version of the adapter.
     /// It should have either 5 or 6 digits separated by periods, where the first digit is Chartboost Mediation SDK's major version, the last digit is the adapter's build version, and intermediate digits are the partner SDK's version.
     /// Format: `<Chartboost Mediation major version>.<Partner major version>.<Partner minor version>.<Partner patch version>.<Partner build version>.<Adapter build version>` where `.<Partner build version>` is optional.
-    let adapterVersion = "4.11.10.0.0"
-    
+    let adapterVersion = "4.11.10.0.1"
+
     /// The partner's unique identifier.
     let partnerIdentifier = "google_googlebidding"
     
@@ -90,11 +90,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// - parameter completion: Closure to be performed with the fetched info.
     func fetchBidderInformation(request: PreBidRequest, completion: @escaping ([String: String]?) -> Void) {
         log(.fetchBidderInfoStarted(request))
-        
-        let gbRequest = GADRequest()
-        gbRequest.requestAgent = "Chartboost"
-        gbRequest.register(sharedExtras)
-        
+
         // Convert from our internal AdFormat type to Google's ad format type
         guard let gbAdFormat = googleAdFormat(from: request.format) else {
             let error = error(.prebidFailureUnknown, description: "Failed to map ad format \(request.format) to GADAdFormat")
@@ -103,8 +99,27 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return
         }
 
-        GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
-            if let token = queryInfo?.query {
+        let gbRequest: GADSignalRequest
+        switch gbAdFormat {
+        case .banner:
+            gbRequest = GADBannerSignalRequest(signalType: GoogleStrings.queryType)
+        case .interstitial:
+            gbRequest = GADInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+        case .rewarded:
+            gbRequest = GADRewardedSignalRequest(signalType: GoogleStrings.queryType)
+        case .rewardedInterstitial:
+            gbRequest = GADRewardedInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+        default:
+            let error = error(.prebidFailureUnknown, description: "Unsupported google ad format \(gbAdFormat)")
+            log(.fetchBidderInfoFailed(request, error: error))
+            completion(nil)
+            return
+        }
+        gbRequest.requestAgent = "Chartboost"
+        gbRequest.register(sharedExtras)
+
+        GADMobileAds.generateSignal(gbRequest) { signal, error in
+            if let token = signal?.signalString {
                 self.log(.fetchBidderInfoSucceeded(request))
                 completion(["token": token])
             } else {
