@@ -1,4 +1,4 @@
-// Copyright 2022-2024 Chartboost, Inc.
+// Copyright 2022-2025 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -84,10 +84,6 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func fetchBidderInformation(request: PartnerAdPreBidRequest, completion: @escaping (Result<[String: String], Error>) -> Void) {
         log(.fetchBidderInfoStarted(request))
 
-        let gbRequest = GADRequest()
-        gbRequest.requestAgent = "Chartboost"
-        gbRequest.register(sharedExtras)
-
         // Convert from our internal AdFormat type to Google's ad format type
         guard let gbAdFormat = googleAdFormat(from: request.format) else {
             let error = error(.prebidFailureUnsupportedAdFormat, description: "Failed to map ad format \(request.format) to GADAdFormat")
@@ -96,13 +92,32 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return
         }
 
-        GADQueryInfo.createQueryInfo(with: gbRequest, adFormat: gbAdFormat) { queryInfo, error in
+        let gbRequest: GADSignalRequest
+        switch gbAdFormat {
+        case .banner:
+            gbRequest = GADBannerSignalRequest(signalType: GoogleStrings.queryType)
+        case .interstitial:
+            gbRequest = GADInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+        case .rewarded:
+            gbRequest = GADRewardedSignalRequest(signalType: GoogleStrings.queryType)
+        case .rewardedInterstitial:
+            gbRequest = GADRewardedInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+        default:
+            let error = error(.prebidFailureUnknown, description: "Unsupported google ad format \(gbAdFormat)")
+            log(.fetchBidderInfoFailed(request, error: error))
+            completion(.failure(error))
+            return
+        }
+        gbRequest.requestAgent = "Chartboost"
+        gbRequest.register(sharedExtras)
+
+        GADMobileAds.generateSignal(gbRequest) { signal, error in
             if let error {
                 self.log(.fetchBidderInfoFailed(request, error: error))
                 completion(.failure(error))
             } else {
                 self.log(.fetchBidderInfoSucceeded(request))
-                let token = queryInfo?.query
+                let token = signal?.signalString
                 completion(.success(token.map { ["token": $0] } ?? [:]))
             }
         }
