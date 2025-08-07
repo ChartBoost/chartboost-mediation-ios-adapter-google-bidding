@@ -48,7 +48,7 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerBannerAd {
             return
         }
 
-        let bannerView = GADBannerView(adSize: gadSize)
+        let bannerView = BannerView(adSize: gadSize)
         bannerView.adUnitID = request.partnerPlacement
         bannerView.isAutoloadEnabled = false
         bannerView.delegate = self
@@ -61,48 +61,48 @@ class GoogleBiddingAdapterBannerAd: GoogleBiddingAdapterAd, PartnerBannerAd {
     }
 }
 
-extension GoogleBiddingAdapterBannerAd: GADBannerViewDelegate {
-    func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+extension GoogleBiddingAdapterBannerAd: BannerViewDelegate {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
         log(.loadSucceeded)
         // From https://developers.google.com/admob/ios/api/reference/Functions:
         // "The exact size of the ad returned is passed through the banner’s ad size delegate and
         // is indicated by the banner’s intrinsicContentSize."
         size = PartnerBannerSize(
             size: bannerView.intrinsicContentSize,
-            type: GADAdSizeIsFluid(bannerView.adSize) ? .adaptive : .fixed
+            type: isAdSizeFluid(size: bannerView.adSize) ? .adaptive : .fixed
         )
         loadCompletion?(nil) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 
-    func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         log(.loadFailed(error))
         loadCompletion?(error) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 
-    func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordImpression(_ bannerView: BannerView) {
         log(.didTrackImpression)
         delegate?.didTrackImpression(self) ?? log(.delegateUnavailable)
     }
 
-    func bannerViewDidRecordClick(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordClick(_ bannerView: BannerView) {
         delegate?.didClick(self) ?? log(.delegateUnavailable)
     }
 }
 
 extension BannerSize {
-    fileprivate var gadAdSize: GADAdSize? {
+    fileprivate var gadAdSize: AdSize? {
         if self.type == .adaptive {
-            return GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(self.size.width, self.size.height)
+            return inlineAdaptiveBanner(width: self.size.width, maxHeight: self.size.height)
         }
         switch self {
         case .standard:
-            return GADAdSizeBanner
+            return AdSizeBanner
         case .medium:
-            return GADAdSizeMediumRectangle
+            return AdSizeMediumRectangle
         case .leaderboard:
-            return GADAdSizeLeaderboard
+            return AdSizeLeaderboard
         default:
             return nil
         }

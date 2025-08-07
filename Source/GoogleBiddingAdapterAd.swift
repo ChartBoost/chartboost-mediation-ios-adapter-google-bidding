@@ -31,13 +31,13 @@ class GoogleBiddingAdapterAd: NSObject {
     var showCompletion: ((Error?) -> Void)?
 
     /// "extra" parameters that should be included in all ad requests
-    let sharedExtras: GADExtras
+    let sharedExtras: Extras
 
     init(
         adapter: PartnerAdapter,
         request: PartnerAdLoadRequest,
         delegate: PartnerAdDelegate,
-        extras: GADExtras
+        extras: Extras
     ) {
         self.adapter = adapter
         self.request = request
@@ -46,8 +46,8 @@ class GoogleBiddingAdapterAd: NSObject {
     }
 
     /// Configure the request object that will be sent to GoogleBidding
-    func generateRequest() -> GADRequest {
-        let gbRequest = GADRequest()
+    func generateRequest() -> Request {
+        let gbRequest = Request()
         gbRequest.requestAgent = "Chartboost"
         gbRequest.adString = request.adm
 
@@ -69,7 +69,7 @@ class GoogleBiddingAdapterAd: NSObject {
             return new
         }
 
-        let extras = GADExtras()
+        let extras = Extras()
         extras.additionalParameters = mergedParameters
         gbRequest.register(extras)
         return gbRequest

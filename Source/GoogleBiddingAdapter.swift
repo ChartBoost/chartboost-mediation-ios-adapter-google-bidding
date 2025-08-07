@@ -24,7 +24,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     var configuration: PartnerAdapterConfiguration.Type { GoogleBiddingAdapterConfiguration.self }
 
     /// Parameters that should be included in all ad requests
-    let sharedExtras = GADExtras()
+    let sharedExtras = Extras()
 
     /// The designated initializer for the adapter.
     /// Chartboost Mediation SDK will use this constructor to create instances of conforming types.
@@ -45,16 +45,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         sharedExtras.additionalParameters = [GoogleStrings.queryTypeKey: GoogleStrings.queryType]
 
         // Disable Google mediation since Chartboost Mediation is the mediator
-        GADMobileAds.sharedInstance().disableMediationInitialization()
+        MobileAds.shared.disableMediationInitialization()
 
         // Apply initial consents
         setConsents(configuration.consents, modifiedKeys: Set(configuration.consents.keys))
         setIsUserUnderage(configuration.isUserUnderage)
 
         // Exit early if GoogleMobileAds SDK has already been initalized
-        let statuses = GADMobileAds.sharedInstance().initializationStatus
+        let statuses = MobileAds.shared.initializationStatus
         guard let status = statuses.adapterStatusesByClassName[GoogleStrings.gadClassName],
-                  status.state == GADAdapterInitializationState.notReady else {
+              status.state == AdapterInitializationState.notReady else {
             log("Redundant call to initalize GoogleMobileAds was ignored")
             // We should log either success or failure before returning, and this is more like success.
             log(.setUpSucceded)
@@ -62,7 +62,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return
         }
 
-        GADMobileAds.sharedInstance().start { initStatus in
+        MobileAds.shared.start { initStatus in
             let statuses = initStatus.adapterStatusesByClassName
             if statuses[GoogleStrings.gadClassName]?.state == .ready {
                 self.log(.setUpSucceded)
@@ -92,16 +92,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return
         }
 
-        let gbRequest: GADSignalRequest
+        let gbRequest: SignalRequest
         switch gbAdFormat {
         case .banner:
-            gbRequest = GADBannerSignalRequest(signalType: GoogleStrings.queryType)
+            gbRequest = BannerSignalRequest(signalType: GoogleStrings.queryType)
         case .interstitial:
-            gbRequest = GADInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+            gbRequest = InterstitialSignalRequest(signalType: GoogleStrings.queryType)
         case .rewarded:
-            gbRequest = GADRewardedSignalRequest(signalType: GoogleStrings.queryType)
+            gbRequest = RewardedSignalRequest(signalType: GoogleStrings.queryType)
         case .rewardedInterstitial:
-            gbRequest = GADRewardedInterstitialSignalRequest(signalType: GoogleStrings.queryType)
+            gbRequest = RewardedInterstitialSignalRequest(signalType: GoogleStrings.queryType)
         default:
             let error = error(.prebidFailureUnknown, description: "Unsupported google ad format \(gbAdFormat)")
             log(.fetchBidderInfoFailed(request, error: error))
@@ -111,13 +111,13 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         gbRequest.requestAgent = "Chartboost"
         gbRequest.register(sharedExtras)
 
-        GADMobileAds.generateSignal(gbRequest) { signal, error in
+        MobileAds.generateSignal(gbRequest) { signal, error in
             if let error {
                 self.log(.fetchBidderInfoFailed(request, error: error))
                 completion(.failure(error))
             } else {
                 self.log(.fetchBidderInfoSucceeded(request))
-                let token = signal?.signalString
+                let token = signal?.signal
                 completion(.success(token.map { ["token": $0] } ?? [:]))
             }
         }
@@ -175,7 +175,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     func setIsUserUnderage(_ isUserUnderage: Bool) {
         // See https://developers.google.com/admob/ios/api/reference/Classes/GADRequestConfiguration#-tagforchilddirectedtreatment:
         log(.privacyUpdated(setting: "ChildDirectedTreatment", value: isUserUnderage))
-        GADMobileAds.sharedInstance().requestConfiguration.tagForChildDirectedTreatment = NSNumber(booleanLiteral: isUserUnderage)
+        MobileAds.shared.requestConfiguration.tagForChildDirectedTreatment = NSNumber(booleanLiteral: isUserUnderage)
     }
 
     /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
@@ -221,10 +221,12 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// Only implement if the partner SDK provides its own list of error codes that can be mapped to Chartboost Mediation's.
     /// If some case cannot be mapped return `nil` to let Chartboost Mediation choose a default error code.
     func mapLoadError(_ error: Error) -> ChartboostMediationError.Code? {
-        guard (error as NSError).domain == GADErrorDomain,
-              let code = GADErrorCode(rawValue: (error as NSError).code) else {
+        let nsError = error as NSError
+        guard nsError.domain == GADErrorDomain,
+              let code = RequestError.Code(rawValue: nsError.code) else {
             return nil
         }
+
         switch code {
         case .invalidRequest:
             return .loadFailureInvalidAdRequest
@@ -248,14 +250,12 @@ final class GoogleBiddingAdapter: PartnerAdapter {
             return .loadFailureUnknown
         case .invalidArgument:
             return .loadFailureUnknown
-        case .receivedInvalidResponse:
-            return .loadFailureInvalidBidResponse
-        case .mediationNoFill:
-            return .loadFailureNoFill
         case .adAlreadyUsed:
             return .loadFailureLoadInProgress
         case .applicationIdentifierMissing:
             return .loadFailureInvalidCredentials
+        case .receivedInvalidAdString:
+            return .loadFailureInvalidAdMarkup
         @unknown default:
             return nil
         }
@@ -268,8 +268,9 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// Only implement if the partner SDK provides its own list of error codes that can be mapped to Chartboost Mediation's.
     /// If some case cannot be mapped return `nil` to let Chartboost Mediation choose a default error code.
     func mapShowError(_ error: Error) -> ChartboostMediationError.Code? {
-        guard (error as NSError).domain == GADErrorDomain,
-              let code = GADPresentationErrorCode(rawValue: (error as NSError).code) else {
+        let nsError = error as NSError
+        guard nsError.domain == GADErrorDomain,
+              let code = PresentationError.Code(rawValue: nsError.code) else {
             return nil
         }
         switch code {
@@ -290,16 +291,16 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         }
     }
 
-    func googleAdFormat(from adFormat: PartnerAdFormat) -> GADAdFormat? {
+    func googleAdFormat(from adFormat: PartnerAdFormat) -> AdFormat? {
         switch adFormat {
         case PartnerAdFormats.banner:
-            return GADAdFormat.banner
+            return AdFormat.banner
         case PartnerAdFormats.interstitial:
-            return GADAdFormat.interstitial
+            return AdFormat.interstitial
         case PartnerAdFormats.rewarded:
-            return GADAdFormat.rewarded
+            return AdFormat.rewarded
         case PartnerAdFormats.rewardedInterstitial:
-            return GADAdFormat.rewardedInterstitial
+            return AdFormat.rewardedInterstitial
         default:
             return nil
         }
