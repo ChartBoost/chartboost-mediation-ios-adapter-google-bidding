@@ -1,4 +1,4 @@
-// Copyright 2022-2025 Chartboost, Inc.
+// Copyright 2022-2026 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -25,11 +25,7 @@ final class GoogleBiddingAdapterRewardedInterstitialAd: GoogleBiddingAdapterAd, 
             return
         }
 
-        let gbRequest = generateRequest()
-        RewardedInterstitialAd.load(
-            with: request.partnerPlacement,
-            request: gbRequest
-        ) { [weak self] ad, error in
+        RewardedInterstitialAd.load(with: adm) { [weak self] ad, error in
             guard let self else { return }
             if let error {
                 self.log(.loadFailed(error))

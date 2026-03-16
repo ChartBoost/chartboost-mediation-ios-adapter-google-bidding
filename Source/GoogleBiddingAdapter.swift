@@ -1,4 +1,4 @@
-// Copyright 2022-2025 Chartboost, Inc.
+// Copyright 2022-2026 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -12,10 +12,8 @@ enum GoogleStrings {
     static let ccpaKey = "gap_rdp"
     static let gadClassName = "GADMobileAds"
     static let nonPersonalizedAdsKey = "npa"
-    static let isHybridKey = "is_hybrid_setup"
     static let queryType = "requester_type_2"
     static let queryTypeKey = "query_info_type"
-    static let reqIdKey = "placement_request_id"
 }
 
 final class GoogleBiddingAdapter: PartnerAdapter {
@@ -189,7 +187,7 @@ final class GoogleBiddingAdapter: PartnerAdapter {
     /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
     func makeBannerAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerBannerAd {
         // This partner supports multiple loads for the same partner placement.
-        GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+        GoogleBiddingAdapterBannerAd(adapter: self, request: request, delegate: delegate)
     }
 
     /// Creates a new ad object in charge of communicating with a single partner SDK ad instance.
@@ -204,11 +202,11 @@ final class GoogleBiddingAdapter: PartnerAdapter {
         // This partner supports multiple loads for the same partner placement.
         switch request.format {
         case PartnerAdFormats.interstitial:
-            return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+            return GoogleBiddingAdapterInterstitialAd(adapter: self, request: request, delegate: delegate)
         case PartnerAdFormats.rewarded:
-            return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+            return GoogleBiddingAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
         case PartnerAdFormats.rewardedInterstitial:
-            return GoogleBiddingAdapterRewardedInterstitialAd(adapter: self, request: request, delegate: delegate, extras: sharedExtras)
+            return GoogleBiddingAdapterRewardedInterstitialAd(adapter: self, request: request, delegate: delegate)
         default:
             throw error(.loadFailureUnsupportedAdFormat)
         }

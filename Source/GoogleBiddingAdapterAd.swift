@@ -1,4 +1,4 @@
-// Copyright 2022-2025 Chartboost, Inc.
+// Copyright 2022-2026 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -30,48 +30,13 @@ class GoogleBiddingAdapterAd: NSObject {
     /// The completion for the ongoing show operation.
     var showCompletion: ((Error?) -> Void)?
 
-    /// "extra" parameters that should be included in all ad requests
-    let sharedExtras: Extras
-
     init(
         adapter: PartnerAdapter,
         request: PartnerAdLoadRequest,
-        delegate: PartnerAdDelegate,
-        extras: Extras
+        delegate: PartnerAdDelegate
     ) {
         self.adapter = adapter
         self.request = request
         self.delegate = delegate
-        self.sharedExtras = extras
-    }
-
-    /// Configure the request object that will be sent to GoogleBidding
-    func generateRequest() -> Request {
-        let gbRequest = Request()
-        gbRequest.requestAgent = "Chartboost"
-        gbRequest.adString = request.adm
-
-        var parameters: [String: Any] = [:]
-        if let isHybrid = request.partnerSettings[GoogleStrings.isHybridKey] as? Bool,
-            isHybrid == true {
-            parameters[GoogleStrings.isHybridKey] = true
-
-            // IFF we received the "is hybrid" flag set to True, we should also include the
-            // request identifier, as per HB-4131
-            parameters[GoogleStrings.reqIdKey] = request.identifier
-        }
-
-        // Generate the extras payload
-        // If extras.additionalParameters is nill, we will merge with an empty dictionary instead
-        let mergedParameters = (sharedExtras.additionalParameters ?? [:]).merging(parameters) { _, new in
-            // There's no anticipated scenario where duplicate keys would exist here, but we still
-            // have to include a closure specifying which value should win if there's a key collison
-            return new
-        }
-
-        let extras = Extras()
-        extras.additionalParameters = mergedParameters
-        gbRequest.register(extras)
-        return gbRequest
     }
 }

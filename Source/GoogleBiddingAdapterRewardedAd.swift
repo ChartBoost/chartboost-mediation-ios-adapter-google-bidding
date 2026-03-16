@@ -1,4 +1,4 @@
-// Copyright 2022-2025 Chartboost, Inc.
+// Copyright 2022-2026 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -25,11 +25,7 @@ final class GoogleBiddingAdapterRewardedAd: GoogleBiddingAdapterAd, PartnerFulls
             return
         }
 
-        let gbRequest = generateRequest()
-        RewardedAd.load(
-            with: self.request.partnerPlacement,
-            request: gbRequest
-        ) { [weak self] ad, error in
+        RewardedAd.load(with: adm) { [weak self] ad, error in
             guard let self else { return }
             if let error {
                 self.log(.loadFailed(error))
